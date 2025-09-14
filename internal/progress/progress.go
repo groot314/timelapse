@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func ProgressTempSock(totalDuration float64) string {
@@ -28,7 +30,20 @@ func ProgressTempSock(totalDuration float64) string {
 		}
 		buf := make([]byte, 16)
 		data := ""
-		progress := ""
+		progress := 0.0
+
+		var (
+			cp   float64
+			cpMu sync.RWMutex
+		)
+
+		go func() {
+			ProgressBar(func() float64 {
+				cpMu.RLock()
+				defer cpMu.RUnlock()
+				return cp
+			})
+		}()
 		for {
 			_, err := fd.Read(buf)
 			if err != nil {
@@ -36,20 +51,18 @@ func ProgressTempSock(totalDuration float64) string {
 			}
 			data += string(buf)
 			a := re.FindAllStringSubmatch(data, -1)
-			cp := ""
+
 			if len(a) > 0 && len(a[len(a)-1]) > 0 {
 				c, _ := strconv.Atoi(a[len(a)-1][len(a[len(a)-1])-1])
-				cp = fmt.Sprintf("%.2f", float64(c)/totalDuration/1000000)
+				cpMu.Lock()
+				cp = float64(c) / totalDuration / 1_000_000
+				cpMu.Unlock()
 			}
 			if strings.Contains(data, "progress=end") {
-				cp = "done"
+				cp = 1
 			}
-			if cp == "" {
-				cp = ".0"
-			}
-			if cp != progress {
+			if math.Abs(cp-progress) > 0.0001 {
 				progress = cp
-				fmt.Println("progress: ", progress)
 			}
 		}
 	}()
