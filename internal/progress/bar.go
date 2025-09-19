@@ -46,8 +46,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tick()
 
 	case tea.KeyMsg:
-		return m, tea.Quit
-
+		switch msg.String() {
+		case "q":
+			return m, tea.Quit
+		}
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
 		m.progress.Width = min(maxWidth, m.progress.Width)
@@ -57,13 +59,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.percent = m.getCP()
 		return m, nil
 	}
+
+	return m, nil
 }
 
 func (m model) View() string {
 	pad := strings.Repeat(" ", padding)
 	return "\n" +
 		pad + m.progress.ViewAs(m.percent) + "\n\n" +
-		pad + helpStyle("Press any key to quit")
+		pad + helpStyle("Press q to quit")
 }
 
 func tick() tea.Cmd {

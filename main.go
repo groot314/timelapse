@@ -25,7 +25,7 @@ func main() {
 	}
 
 	ffmpegInput := *input + "/DSC%05d.JPG"
-	ffmpegInputArgs := ffmpeg.KwArgs{"framerate": "24", "start_number": *startNumber}
+	ffmpegInputArgs := ffmpeg.KwArgs{"framerate": "24", "start_number": *startNumber} //TODO: add -vframes <num>, for end frame
 	a, err := ffmpeg.Probe(ffmpegInput, ffmpegInputArgs)
 	if err != nil {
 		panic(err)

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"os"
 	"slices"
 	"strings"
@@ -43,4 +44,20 @@ func FindPhotoStart(path string) (string, error) {
 
 func isNumeric(c byte) bool {
 	return (c <= '0' && c <= '9')
+}
+
+func FindTimelapseInPath(path string) { //TODO: Finish
+	files, err := os.ReadDir(path)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(info.ModTime())
+	}
 }
